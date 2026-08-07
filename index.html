@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width,
+                   initial-scale=1.0,
+                   maximum-scale=1.0,
+                   user-scalable=no">
+
+    <meta name="theme-color" content="#0D2B5E">
+
+    <title>SAA Ramp Checklist</title>
+
+    <link rel="stylesheet" href="style.css"> 
+
+</head>
+
+<body>
+
+<div id="app">
+
+    <section id="homeScreen" class="screen">
+
+        <header class="header">
+
+            <div class="headerTop">
+
+                <img src="logo.png.png"
+                     class="logo"
+                     alt="SAA Logo">
+
+            </div>
+
+            <p class="greeting">
+                Good Morning,
+            </p>
+
+            <h1 class="username">
+                Ramp Agent
+            </h1>
+
+            <div class="stats">
+
+                <div class="statCard">
+
+                    <h2 id="completedInspections">0</h2>
+
+                    <p>
+                        Today's Inspections
+                    </p>
+
+                </div>
+
+                <div class="statCard">
+
+                    <h2>
+                        —
+                    </h2>
+
+                    <p>
+                        On Time Rate
+                    </p>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <div class="goldBar"></div>
+
+        <main class="content">
+
+            <div class="card">
+
+                <h3>
+                    Arrival Inspection
+                </h3>
+
+                <p>
+                    Start a new arrival inspection for an inbound aircraft.
+                </p>
+
+                <button
+                    id="startInspection"
+                    class="primaryButton">
+
+                    Start New Inspection
+
+                </button>
+
+            </div>
+
+            <div class="card">
+
+                <h3>
+                    Recent Inspections
+                </h3>
+
+                <div class="emptyState">
+
+                    No inspections completed today.
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </section>
+<section id="flightScreen" class="screen hidden">
+
+    <header class="header">
+
+        <div class="headerRow">
+
+            <img src="logo.png.png"
+         class="logoSmall"
+         alt="SAA Logo">
+
+    <button class="backButton" id="backHome">
+        ← Back
+    </button>
+
+        </div>
+
+        <h2>Flight Details</h2>
+
+        <p class="subtitle">
+            Arrival Information
+        </p>
+
+    </header>
+
+    <div class="goldBar"></div>
+<div class="progressContainer">
+
+    <div class="progressHeader">
+
+        <span id="progressText">
+            Step 1 of 4
+        </span>
+
+        <span id="progressPercent">
+            25%
+        </span>
+
+    </div>
+
+    <div class="progressBar">
+
+        <div
+            id="progressFill"
+            class="progressFill"
+            style="width:25%;">
+        </div>
+
+    </div>
+
+</div>
+    <main class="content">
+
+        <div class="card">
+
+            <label>Flight Number</label>
+            <input id="flightNumber"
+                   placeholder="SA404">
+
+            <label>Date</label>
+            <input
+                type="date"
+                id="flightDate">
+
+            <label>Parking Bay</label>
+            <input
+                id="parkingBay"
+                placeholder="C12">
+
+            <label>TRC Coordinator</label>
+            <input
+                id="coordinator"
+                placeholder="Name">
+
+            <label>Bay Clear of FOD?</label>
+
+            <select id="fod">
+
+                <option value="">Select</option>
+                <option>Yes</option>
+                <option>No</option>
+
+            </select>
+
+            <button
+                id="nextInbound"
+                class="primaryButton">
+
+                Continue
+
+            </button>
+
+        </div>
+
+    </main>
+
+</section> 
+<section id="inboundScreen" class="screen hidden">
+
+    <header class="header">
+
+        <div class="headerRow">
+
+            <img src="logo.png.png"
+                 class="logoSmall"
+                 alt="SAA Logo">
+
+            <button class="backButton" id="backFlight">
+                ← Back
+            </button>
+
+        </div>
+
+        <h2>Inbound Flight</h2>
+        <p class="subtitle">Aircraft Information</p>
+
+    </header>
+
+    <div class="goldBar"></div>
+<div class="progressContainer">
+
+    <div class="progressHeader">
+
+        <span id="progressText">
+            Step 2 of 4
+        </span>
+
+        <span id="progressPercent">
+            50%
+        </span>
+
+    </div>
+
+    <div class="progressBar">
+
+        <div
+            id="progressFill"
+            class="progressFill"
+            style="width:25%;">
+        </div>
+
+    </div>
+
+</div>
+    <main class="content">
+
+        <div class="card">
+<label for="aircraftType">Aircraft Type</label>
+
+<select id="aircraftType">
+
+    <option value="">Select Aircraft</option>
+
+    <option value="A319">
+         A319
+    </option>
+
+    <option value="A320">
+         A320
+    </option>
+
+    <option value="A330">
+         A330
+    </option>
+
+    <option value="A340">
+         A340
+    </option>
+
+   <option value="B737">
+        Boeing B737
+    </option> 
+
+
+</select>
+          <label for="registration">Registration</label>
+
+<select id="registration">
+
+    <option value="">Select Registration</option>
+
+</select>
+            <label>STA</label>
+            <input type="time" id="sta">
+
+            <label>ETA</label>
+            <input type="time" id="eta">
+
+            <label>ATA</label>
+            <input type="time" id="ata">
+
+            <label>Chocked Time</label>
+            <input type="time" id="chocked">
+
+            <label>Thumbs Up Time</label>
+            <input type="time" id="thumbsUp">
+
+            <button id="nextChecklist" class="primaryButton">
+                Continue
+            </button>
+
+        </div>
+
+    </main>
+
+</section>
+<section id="checklistScreen" class="screen hidden">
+
+    <header class="header">
+
+        <div class="headerRow">
+
+            <img src="logo.png.png"
+                 class="logoSmall"
+                 alt="SAA Logo">
+
+            <button class="backButton" id="backInbound">
+                ← Back
+            </button>
+    
+        </div>
+
+        <h2>Arrival Checklist</h2>
+        <p class="subtitle">Complete all required checks</p>
+
+    </header>
+
+    <div class="goldBar"></div>
+
+    <div class="progressContainer">
+
+        <div class="progressHeader">
+
+            <span>Progress</span>
+
+            <span id="checklistProgress">0 / 5</span>
+
+        </div>
+
+        <div class="progressBar">
+
+            <div id="checklistFill"
+                 class="progressFill"
+                 style="width:0%;">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <main class="content">
+
+       <div id="fodItem" class="checkItem" data-item="fod">
+
+    <span id="fodLabel">⭕ Bay Clear of FOD</span>
+
+    <span>></span>
+
+</div>
+
+        <div id="chocksItem" class="checkItem" data-item="chocks">
+
+    <span id="chocksLabel">⭕ Chocks Positioned</span>
+
+    <span>></span>
+
+</div>
+
+        <div id="conesItem" class="checkItem" data-item="cones">
+
+    <span id="conesLabel">⭕ Safety Cones Positioned</span>
+
+    <span>></span>
+
+</div>
+
+        <div id="gpuItem" class="checkItem" data-item="gpu">
+
+    <span id="gpuLabel">⭕ Ground Power Connected</span>
+
+    <span>></span>
+
+</div>
+
+
+       <div id="stairsItem" class="checkItem" data-item="stairs">
+
+    <span id="stairsLabel">⭕ Passenger Stairs Positioned</span>
+
+    <span>></span>
+
+</div>
+<button
+        id="reviewInspection"
+        class="primaryButton hidden">
+
+        Review Inspection
+
+    </button>
+
+    </main>
+
+</section>
+<section id="inspectionScreen" class="screen hidden">
+
+    <header class="header">
+
+        <div class="headerRow">
+
+            <img src="logo.png.png"
+                 class="logoSmall"
+                 alt="SAA Logo">
+
+            <button class="backButton" id="backChecklist">
+                ← Back
+            </button>
+
+        </div>
+
+        <h2 id="inspectionTitle">Bay Clear of FOD</h2>
+
+        <p class="subtitle">
+            Complete the inspection
+        </p>
+
+    </header>
+
+    <div class="goldBar"></div>
+
+    <main class="content">
+
+        <div class="card">
+
+            <h3>Inspection Status</h3>
+
+<div class="statusGroup">
+
+    <label class="statusCard pass">
+
+        <input type="radio"
+               name="status"
+               value="Pass">
+
+        <span>✅ PASS</span>
+
+    </label>
+
+    <label class="statusCard fail">
+
+        <input type="radio"
+               name="status"
+               value="Fail">
+
+        <span>❌ FAIL</span>
+
+    </label>
+
+    <label class="statusCard na">
+
+        <input type="radio"
+               name="status"
+               value="N/A">
+
+        <span>➖ N/A</span>
+
+    </label>
+
+</div>
+
+            <label>Comments</label>
+
+            <textarea
+                id="inspectionComments"
+                rows="5"
+                placeholder="Enter comments..."></textarea>
+
+                <h3>Photo Evidence</h3>
+
+<div class="photoCard">
+
+    <button id="addPhoto" class="photoButton">
+
+        📷 Add Photo
+
+    </button>
+
+    <p id="photoStatus">
+
+        No photo attached
+
+    </p>
+
+</div>
+
+
+            <button
+                id="saveInspection"
+                class="primaryButton">
+
+                Save Inspection
+
+            </button>
+
+        </div>
+
+    </main>
+
+</section>
+
+<section id="summaryScreen" class="screen hidden">
+
+    <header class="header">
+
+        <div class="headerRow">
+
+            <img src="logo.png.png"
+                 class="logoSmall"
+                 alt="SAA Logo">
+
+            <button
+                class="backButton"
+                id="backToChecklist">
+
+                ← Back
+
+            </button>
+
+        </div>
+
+        <h2>Inspection Summary</h2>
+
+        <p class="subtitle">
+            Review before submission
+        </p>
+
+    </header>
+
+    <div class="goldBar"></div>
+
+    <main class="content">
+
+        <div class="card">
+
+            <h3>Flight Details</h3>
+
+            <p><strong>Flight:</strong>
+                <span id="summaryFlight"></span>
+            </p>
+
+            <p><strong>Aircraft:</strong>
+                <span id="summaryAircraft"></span>
+            </p>
+
+            <p><strong>Registration:</strong>
+                <span id="summaryRegistration"></span>
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Completed Checks</h3>
+
+            <div id="summaryChecks"></div>
+<hr>
+
+<h3>Overall Result</h3>
+
+<div id="overallResult" class="resultCard">
+
+    Pending
+
+</div>
+        </div>
+
+        <button
+            id="submitInspection"
+            class="primaryButton">
+
+            Submit Inspection
+
+        </button>
+
+<p id="inspectionReference"></p>
+    </main>
+
+</section>
+
+<section id="successScreen" class="screen hidden">
+
+    <header class="header">
+
+        <h2>Inspection Submitted</h2>
+
+        <p class="subtitle">
+
+            Submission Successful
+
+        </p>
+
+    </header>
+
+    <div class="goldBar"></div>
+
+    <main class="content">
+
+        <div class="card" style="text-align:center;">
+
+            <h1>✅</h1>
+
+            <h2>Inspection Submitted</h2>
+
+            <p>
+
+                Your inspection has been submitted successfully.
+
+            </p>
+
+            <br>
+
+            <strong>Reference</strong>
+
+            <p id="successReference"></p>
+
+            <br>
+
+            <button
+                id="newInspection"
+                class="primaryButton">
+
+                Start New Inspection
+
+            </button>
+
+            <button
+                id="returnHome"
+                class="secondaryButton">
+
+                Return Home
+
+            </button>
+
+        </div>
+
+    </main>
+
+</section>
+</div>
+
+<script src="app.js"></script>
+
+    <div id="toast" class="toast"></div>    
+
+</body>
+
+</html>
