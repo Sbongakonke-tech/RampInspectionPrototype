@@ -57,7 +57,7 @@ const newInspection = document.getElementById("newInspection");
 const returnHome = document.getElementById("returnHome");
 
 const submitInspection = document.getElementById("submitInspection");
-submitInspection.addEventListener("click", async () => {
+submitInspection.addEventListener("click", () => {
 
     const now = new Date();
     const reference =
@@ -85,7 +85,7 @@ submitInspection.addEventListener("click", async () => {
         document.getElementById("onTimeRate").textContent = rate + "%";
     }
 
-    // ── COLLECT CHECKLIST ITEMS ───────────────────────────
+    // Collect checklist items
     const items = Object.values(checklistItems).map(item => ({
         name: item.label || '',
         status: item.status || 'pending',
@@ -93,7 +93,7 @@ submitInspection.addEventListener("click", async () => {
         completedTime: item.completedTime || ''
     }));
 
-    // ── BUILD PAYLOAD ─────────────────────────────────────
+    // Build payload
     const payload = {
         flightNumber: document.getElementById('flightNumber')?.value || '',
         flightDate: document.getElementById('flightDate')?.value || '',
@@ -115,20 +115,15 @@ submitInspection.addEventListener("click", async () => {
         items: JSON.stringify(items)
     };
 
-    // ── SEND TO GOOGLE SHEETS ─────────────────────────────
-    try {
-        await fetch(SHEETS_API_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        console.log('Submitted to Google Sheets successfully');
-    } catch (error) {
-        console.error('Sheets submission error:', error);
-    }
-    // ─────────────────────────────────────────────────────
+    // Send to Google Sheets - fire and forget
+    fetch(SHEETS_API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).catch(error => console.error('Sheets error:', error));
 
+    // Move to success screen immediately
     summaryScreen.classList.add("hidden");
     successScreen.classList.remove("hidden");
     showToast("Inspection submitted successfully!", "success");
