@@ -1,7 +1,4 @@
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxYOcWPvNXO49ZZfOv2zteecBh37ZnO3ez9CnyXOJsn041nZZ8zWRPBBcjid7Ahbt5t2A/exec';
-let totalTurnarounds = 0;
-let onTimeTurnarounds = 0;
-const TARGET_TURNAROUND = 45;
 const checklistScreen =
 document.getElementById("checklistScreen");
 
@@ -57,7 +54,7 @@ const newInspection = document.getElementById("newInspection");
 const returnHome = document.getElementById("returnHome");
 
 const submitInspection = document.getElementById("submitInspection");
-submitInspection.addEventListener("click", () => {
+submitInspection.addEventListener("click", async () => {
 
     const now = new Date();
     const reference =
@@ -81,12 +78,11 @@ submitInspection.addEventListener("click", () => {
         if (turnaroundMinutes <= TARGET_TURNAROUND) {
             onTimeTurnarounds++;
         }
-      const rate = Math.round((onTimeTurnarounds / totalTurnarounds) * 100);
-const onTimeRateEl = document.getElementById("onTimeRate");
-if (onTimeRateEl) {
-    onTimeRateEl.textContent = rate + "%";
-}
-    // Collect checklist items
+        const rate = Math.round((onTimeTurnarounds / totalTurnarounds) * 100);
+        document.getElementById("onTimeRate").textContent = rate + "%";
+    }
+
+    // ── COLLECT CHECKLIST ITEMS ───────────────────────────
     const items = Object.values(checklistItems).map(item => ({
         name: item.label || '',
         status: item.status || 'pending',
@@ -94,7 +90,7 @@ if (onTimeRateEl) {
         completedTime: item.completedTime || ''
     }));
 
-    // Build payload
+    // ── BUILD PAYLOAD ─────────────────────────────────────
     const payload = {
         flightNumber: document.getElementById('flightNumber')?.value || '',
         flightDate: document.getElementById('flightDate')?.value || '',
@@ -116,15 +112,20 @@ if (onTimeRateEl) {
         items: JSON.stringify(items)
     };
 
-    // Send to Google Sheets - fire and forget
-    fetch(SHEETS_API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    }).catch(error => console.error('Sheets error:', error));
+    // ── SEND TO GOOGLE SHEETS ─────────────────────────────
+    try {
+        await fetch(SHEETS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        console.log('Submitted to Google Sheets successfully');
+    } catch (error) {
+        console.error('Sheets submission error:', error);
+    }
+    // ─────────────────────────────────────────────────────
 
-    // Move to success screen immediately
     summaryScreen.classList.add("hidden");
     successScreen.classList.remove("hidden");
     showToast("Inspection submitted successfully!", "success");
