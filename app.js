@@ -133,18 +133,12 @@ submitInspection.addEventListener("click", async () => {
     };
 
     // ── SEND TO GOOGLE SHEETS ─────────────────────────────
-    try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    
-    // Fire and forget — don't wait for response
-fetch(SHEETS_API_URL, {
+   fetch(SHEETS_API_URL, {
     method: 'POST',
     mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
 }).catch(error => console.error('Sheets error:', error));
-    // ─────────────────────────────────────────────────────
 
     summaryScreen.classList.add("hidden");
     successScreen.classList.remove("hidden");
