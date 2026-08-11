@@ -1,3 +1,4 @@
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxYOcWPvNXO49ZZfOv2zteecBh37ZnO3ez9CnyXOJsn041nZZ8zWRPBBcjid7Ahbt5t2A/exec';
 const checklistScreen =
 document.getElementById("checklistScreen");
 
@@ -52,13 +53,10 @@ const newInspection = document.getElementById("newInspection");
 
 const returnHome = document.getElementById("returnHome");
 
-const submitInspection =
-document.getElementById("submitInspection");
-submitInspection.addEventListener("click", () => {
+const submitInspection = document.getElementById("submitInspection");
+submitInspection.addEventListener("click", async () => {
 
-    // Generate a reference number
     const now = new Date();
-
     const reference =
         "SAA-" +
         now.getFullYear() +
@@ -67,27 +65,71 @@ submitInspection.addEventListener("click", () => {
         "-" +
         Math.floor(Math.random() * 900 + 100);
 
-   successReference.textContent = reference;
-let inspections =
-Number(localStorage.getItem("completedInspections")) || 0;
+    successReference.textContent = reference;
 
-inspections++;
+    const chocked = document.getElementById("chocked").value;
+    const thumbsUp = document.getElementById("thumbsUp").value;
 
-localStorage.setItem("completedInspections", inspections);
+    if (chocked && thumbsUp) {
+        const start = new Date("2000-01-01T" + chocked);
+        const end = new Date("2000-01-01T" + thumbsUp);
+        const turnaroundMinutes = (end - start) / 60000;
+        totalTurnarounds++;
+        if (turnaroundMinutes <= TARGET_TURNAROUND) {
+            onTimeTurnarounds++;
+        }
+        const rate = Math.round((onTimeTurnarounds / totalTurnarounds) * 100);
+        document.getElementById("onTimeRate").textContent = rate + "%";
+    }
 
-document.getElementById("completedInspections").textContent =
-inspections;
-document.getElementById("completedInspections").textContent =
-Number(localStorage.getItem("completedInspections")) || 0;
-summaryScreen.classList.add("hidden");
-successScreen.classList.remove("hidden");
+    // ── COLLECT CHECKLIST ITEMS ───────────────────────────
+    const items = Object.values(checklistItems).map(item => ({
+        name: item.label || '',
+        status: item.status || 'pending',
+        comment: item.comments || '',
+        completedTime: item.completedTime || ''
+    }));
 
-showToast(
-    "Inspection submitted successfully!",
-    "success"
-);
+    // ── BUILD PAYLOAD ─────────────────────────────────────
+    const payload = {
+        flightNumber: document.getElementById('flightNumber')?.value || '',
+        flightDate: document.getElementById('flightDate')?.value || '',
+        bay: document.getElementById('parkingBay')?.value || '',
+        coordinator: document.getElementById('coordinator')?.value || '',
+        acType: document.getElementById('aircraftType')?.value || '',
+        registration: document.getElementById('registration')?.value || '',
+        sta: document.getElementById('sta')?.value || '',
+        eta: document.getElementById('eta')?.value || '',
+        ata: document.getElementById('ata')?.value || '',
+        chockedTime: chocked,
+        thumbsUp: thumbsUp,
+        fod: document.getElementById('fod')?.value || '',
+        status: document.getElementById('overallResult')?.textContent || '',
+        itemsCompleted: items.filter(i => i.status === 'Pass').length,
+        elapsedSeconds: chocked && thumbsUp ?
+            Math.round((new Date("2000-01-01T" + thumbsUp) - new Date("2000-01-01T" + chocked)) / 1000) : 0,
+        submittedBy: reference,
+        items: JSON.stringify(items)
+    };
 
-}); 
+    // ── SEND TO GOOGLE SHEETS ─────────────────────────────
+    try {
+        await fetch(SHEETS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        console.log('Submitted to Google Sheets successfully');
+    } catch (error) {
+        console.error('Sheets submission error:', error);
+    }
+    // ─────────────────────────────────────────────────────
+
+    summaryScreen.classList.add("hidden");
+    successScreen.classList.remove("hidden");
+    showToast("Inspection submitted successfully!", "success");
+});
 
 const checklistItems = {
 
