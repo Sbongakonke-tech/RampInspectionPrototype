@@ -79,6 +79,11 @@ document.getElementById("completedInspections").textContent =
 inspections;
 document.getElementById("completedInspections").textContent =
 Number(localStorage.getItem("completedInspections")) || 0;
+
+fetch('https://script.google.com/macros/s/AKfycbxYOcWPvNXO49ZZfOv2zteecBh37ZnO3ez9CnyXOJsn041nZZ8zWRPBBcjid7Ahbt5t2A/exec', {
+    method: 'POST', mode: 'no-cors',
+    body: JSON.stringify({flightNumber: document.getElementById('flightNumber')?.value || '', flightDate: document.getElementById('flightDate')?.value || '', bay: document.getElementById('parkingBay')?.value || '', coordinator: document.getElementById('coordinator')?.value || '', acType: document.getElementById('aircraftType')?.value || '', registration: document.getElementById('registration')?.value || '', sta: document.getElementById('sta')?.value || '', eta: document.getElementById('eta')?.value || '', ata: document.getElementById('ata')?.value || '', chockedTime: document.getElementById('chocked')?.value || '', thumbsUp: document.getElementById('thumbsUp')?.value || '', fod: document.getElementById('fod')?.value || '', status: document.getElementById('overallResult')?.textContent || '', items: JSON.stringify(Object.values(checklistItems).map(i => ({name: i.label, status: i.status, comment: i.comments, time: i.completedTime})))})
+}).catch(e => console.error(e));
 summaryScreen.classList.add("hidden");
 successScreen.classList.remove("hidden");
 
