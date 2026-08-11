@@ -1,4 +1,7 @@
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxYOcWPvNXO49ZZfOv2zteecBh37ZnO3ez9CnyXOJsn041nZZ8zWRPBBcjid7Ahbt5t2A/exec';
+let totalTurnarounds = 0;
+let onTimeTurnarounds = 0;
+const TARGET_TURNAROUND = 45;
 const checklistScreen =
 document.getElementById("checklistScreen");
 
