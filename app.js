@@ -81,10 +81,11 @@ submitInspection.addEventListener("click", () => {
         if (turnaroundMinutes <= TARGET_TURNAROUND) {
             onTimeTurnarounds++;
         }
-        const rate = Math.round((onTimeTurnarounds / totalTurnarounds) * 100);
-        document.getElementById("onTimeRate").textContent = rate + "%";
-    }
-
+      const rate = Math.round((onTimeTurnarounds / totalTurnarounds) * 100);
+const onTimeRateEl = document.getElementById("onTimeRate");
+if (onTimeRateEl) {
+    onTimeRateEl.textContent = rate + "%";
+}
     // Collect checklist items
     const items = Object.values(checklistItems).map(item => ({
         name: item.label || '',
