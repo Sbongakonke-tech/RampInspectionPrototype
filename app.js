@@ -1,21 +1,4 @@
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxYOcWPvNXO49ZZfOv2zteecBh37ZnO3ez9CnyXOJsn041nZZ8zWRPBBcjid7Ahbt5t2A/exec';
-function showToast(message, type = "info") {
-
-    toast.textContent = message;
-
-    toast.className = "toast";
-
-    toast.classList.add(type);
-
-    toast.classList.add("show");
-
-    setTimeout(() => {
-
-        toast.classList.remove("show");
-
-    }, 2500);
-
-}
 const checklistScreen =
 document.getElementById("checklistScreen");
 
@@ -70,9 +53,6 @@ const newInspection = document.getElementById("newInspection");
 
 const returnHome = document.getElementById("returnHome");
 
-let totalTurnarounds = 0;
-let onTimeTurnarounds = 0;
-const TARGET_TURNAROUND = 45;
 const submitInspection = document.getElementById("submitInspection");
 submitInspection.addEventListener("click", async () => {
 
@@ -133,12 +113,18 @@ submitInspection.addEventListener("click", async () => {
     };
 
     // ── SEND TO GOOGLE SHEETS ─────────────────────────────
-   fetch(SHEETS_API_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-}).catch(error => console.error('Sheets error:', error));
+    try {
+        await fetch(SHEETS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        console.log('Submitted to Google Sheets successfully');
+    } catch (error) {
+        console.error('Sheets submission error:', error);
+    }
+    // ─────────────────────────────────────────────────────
 
     summaryScreen.classList.add("hidden");
     successScreen.classList.remove("hidden");
@@ -556,6 +542,25 @@ document.getElementById("nextChecklist").addEventListener("click", () => {
     showToast("Aircraft details saved.", "success");
 
 });
+
+
+function showToast(message, type = "info") {
+
+    toast.textContent = message;
+
+    toast.className = "toast";
+
+    toast.classList.add(type);
+
+    toast.classList.add("show");
+
+    setTimeout(() => {
+
+        toast.classList.remove("show");
+
+    }, 2500);
+
+}
 
 function openInspection(itemKey) {
 
