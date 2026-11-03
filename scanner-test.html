@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scanner test</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#14181f;--muted:#5d6675;--line:#d9dde4;--accent:#0b5fff;--ok:#0a8f4e;--warn:#c27a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1318;--card:#181e26;--text:#eef1f5;--muted:#9aa4b2;--line:#2a323d;--accent:#5b8dff;--ok:#38c783;--warn:#e8a93a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1318;--card:#181e26;--text:#eef1f5;--muted:#9aa4b2;--line:#2a323d;--accent:#5b8dff;--ok:#38c783;--warn:#e8a93a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:12px;max-width:560px;margin:0 auto}
+h1{font-size:19px;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.view{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3}
+video{width:100%;height:100%;object-fit:cover;display:block}
+.frame{position:absolute;inset:18% 12%;border:2px solid rgba(255,255,255,.85);border-radius:10px;pointer-events:none}
+.flash{position:absolute;inset:0;background:var(--ok);opacity:0;pointer-events:none;transition:opacity .35s}
+.flash.on{opacity:.45;transition:none}
+.hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:#fff;font-size:13px;text-shadow:0 1px 3px #000}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+button{font:inherit;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);flex:1;min-width:90px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+input[type=text]{font:inherit;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);flex:2;min-width:150px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.stats b{display:block;font-size:20px}
+.stats span{font-size:11px;color:var(--muted)}
+.last{font-size:20px;font-weight:700;word-break:break-all;min-height:28px}
+.meta{color:var(--muted);font-size:13px}
+.log{max-height:240px;overflow:auto}
+.item{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.item:last-child{border-bottom:0}
+.item .v{word-break:break-all}
+.item .m{color:var(--muted);white-space:nowrap;font-size:12px}
+.msg{color:var(--warn);font-size:13px;min-height:18px}
+</style>
+</head>
+<body>
+<h1>Scanner test</h1>
+<p class="sub">Camera scanning check for the PNC460. Try QR, Data Matrix and barcodes in real warehouse light.</p>
+
+<div class="card">
+  <div class="view">
+    <video id="video" playsinline muted></video>
+    <div class="frame"></div>
+    <div class="flash" id="flash"></div>
+    <div class="hint" id="hint">Camera is off</div>
+  </div>
+  <div class="row">
+    <button class="primary" id="startBtn">Start camera</button>
+    <button id="torchBtn" disabled>Torch</button>
+    <button id="beepBtn">Beep: on</button>
+  </div>
+  <div class="msg" id="msg"></div>
+</div>
+
+<div class="card">
+  <div class="meta">Last scan</div>
+  <div class="last" id="last">-</div>
+  <div class="meta" id="lastMeta">Nothing scanned yet</div>
+  <div class="stats" style="margin-top:10px">
+    <div><b id="sTotal">0</b><span>Scans</span></div>
+    <div><b id="sUnique">0</b><span>Unique</span></div>
+    <div><b id="sDupe">0</b><span>Repeats ignored</span></div>
+    <div><b id="sMs">-</b><span>Avg ms to read</span></div>
+  </div>
+  <div class="meta" style="margin-top:8px">Engine: <span id="engine">not started</span></div>
+</div>
+
+<div class="card">
+  <div class="meta" style="margin-bottom:6px">Manual entry (fallback when a code won’t scan)</div>
+  <div class="row" style="margin-top:0">
+    <input type="text" id="manual" placeholder="Type a code" autocomplete="off">
+    <button id="manualBtn">Add</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="meta" style="margin-bottom:4px">Scan log</div>
+  <div class="log" id="log"></div>
+  <div class="row">
+    <button id="copyBtn">Copy log</button>
+    <button id="clearBtn">Clear</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var video=$('video'),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
+  var stream=null,track=null,running=false,detector=null,zxReader=null,engine='',torchOn=false,beepOn=true;
+  var lastVal='',lastAt=0,startedAt=0,total=0,dupes=0,uniq={},times=[],logRows=[],lastFrame=0;
+  var FORMATS=['qr_code','data_matrix','code_128','code_39','ean_13','ean_8','upc_a','itf','pdf417'];
+  var audioCtx=null;
+
+  function setMsg(t){$('msg').textContent=t||''}
+  function beep(){
+    if(!beepOn)return;
+    try{
+      audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+      var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.frequency.value=1200;g.gain.value=.15;o.connect(g);g.connect(audioCtx.destination);
+      o.start();o.stop(audioCtx.currentTime+.12);
+    }catch(e){}
+  }
+  function buzz(){try{if(navigator.vibrate)navigator.vibrate(80)}catch(e){}}
+  function flash(){var f=$('flash');f.classList.add('on');setTimeout(function(){f.classList.remove('on')},60)}
+
+  async function setupEngine(){
+    if('BarcodeDetector' in window){
+      try{
+        var sup=await BarcodeDetector.getSupportedFormats();
+        var use=FORMATS.filter(function(f){return sup.indexOf(f)>-1});
+        if(use.length){detector=new BarcodeDetector({formats:use});engine='Built-in BarcodeDetector ('+use.length+' formats)';return}
+      }catch(e){}
+    }
+    if(window.ZXing){
+      var hints=new Map();
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.QR_CODE,ZXing.BarcodeFormat.DATA_MATRIX,ZXing.BarcodeFormat.CODE_128,ZXing.BarcodeFormat.CODE_39,ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.ITF,ZXing.BarcodeFormat.PDF_417]);
+      hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
+      zxReader=new ZXing.MultiFormatReader();zxReader.setHints(hints);
+      engine='ZXing (software decoder)';return;
+    }
+    engine='No decoder available';
+  }
+
+  async function start(){
+    setMsg('');
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setMsg('Camera not available in this browser or page.');return}
+    try{
+      await setupEngine();
+      $('engine').textContent=engine;
+      if(engine==='No decoder available'){setMsg('Decoder failed to load. Check the connection and reload.');return}
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      video.srcObject=stream;await video.play();
+      track=stream.getVideoTracks()[0];
+      try{
+        var caps=track.getCapabilities?track.getCapabilities():{};
+        $('torchBtn').disabled=!caps.torch;
+        if(caps.focusMode&&caps.focusMode.indexOf('continuous')>-1)await track.applyConstraints({advanced:[{focusMode:'continuous'}]});
+      }catch(e){}
+      running=true;startedAt=performance.now();
+      $('startBtn').textContent='Stop camera';
+      $('hint').textContent='Point at a code';
+      requestAnimationFrame(loop);
+    }catch(e){
+      setMsg('Camera error: '+(e&&e.name?e.name:'unknown')+'. Allow camera access and try again.');
+    }
+  }
+  function stop(){
+    running=false;
+    if(stream){stream.getTracks().forEach(function(t){t.stop()})}
+    stream=null;track=null;video.srcObject=null;torchOn=false;
+    $('torchBtn').disabled=true;$('torchBtn').textContent='Torch';
+    $('startBtn').textContent='Start camera';$('hint').textContent='Camera is off';
+  }
+
+  async function loop(ts){
+    if(!running)return;
+    if(ts-lastFrame>=110&&video.readyState>=2){
+      lastFrame=ts;
+      try{
+        var val=null,fmt='';
+        if(detector){
+          var r=await detector.detect(video);
+          if(r.length){val=r[0].rawValue;fmt=r[0].format}
+        }else if(zxReader){
+          var w=video.videoWidth,h=video.videoHeight,s=Math.min(1,800/w);
+          canvas.width=Math.round(w*s);canvas.height=Math.round(h*s);
+          ctx.drawImage(video,0,0,canvas.width,canvas.height);
+          var lum=new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+          var bmp=new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
+          try{var res=zxReader.decode(bmp);val=res.getText();fmt=ZXing.BarcodeFormat[res.getBarcodeFormat()].toLowerCase()}catch(e){}
+        }
+        if(val)handle(val,fmt,'camera');
+      }catch(e){}
+    }
+    requestAnimationFrame(loop);
+  }
+
+  function handle(val,fmt,src){
+    var now=performance.now();
+    if(val===lastVal&&now-lastAt<2500){dupes++;lastAt=now;$('sDupe').textContent=dupes;return}
+    var ms=Math.round(now-(lastAt&&src==='camera'?Math.max(lastAt,startedAt):startedAt));
+    if(src==='camera'){times.push(ms)}
+    lastVal=val;lastAt=now;total++;uniq[val]=1;
+    var d=new Date(),t=d.toLocaleTimeString([], {hour12:false});
+    logRows.unshift({v:val,f:fmt,s:src,t:t});
+    $('last').textContent=val;
+    $('lastMeta').textContent=fmt+' via '+src+' at '+t+(src==='camera'?' ('+ms+' ms)':'');
+    $('sTotal').textContent=total;$('sUnique').textContent=Object.keys(uniq).length;$('sDupe').textContent=dupes;
+    if(times.length){var a=0;times.forEach(function(x){a+=x});$('sMs').textContent=Math.round(a/times.length)}
+    beep();buzz();flash();renderLog();
+  }
+  function renderLog(){
+    var box=$('log');box.textContent='';
+    logRows.slice(0,50).forEach(function(r){
+      var row=document.createElement('div');row.className='item';
+      var v=document.createElement('span');v.className='v';v.textContent=r.v;
+      var m=document.createElement('span');m.className='m';m.textContent=r.f+' · '+r.t;
+      row.appendChild(v);row.appendChild(m);box.appendChild(row);
+    });
+  }
+
+  $('startBtn').onclick=function(){running?stop():start()};
+  $('torchBtn').onclick=async function(){
+    if(!track)return;
+    try{torchOn=!torchOn;await track.applyConstraints({advanced:[{torch:torchOn}]});$('torchBtn').textContent=torchOn?'Torch: on':'Torch'}
+    catch(e){torchOn=false;setMsg('Torch not supported on this camera.')}
+  };
+  $('beepBtn').onclick=function(){beepOn=!beepOn;$('beepBtn').textContent='Beep: '+(beepOn?'on':'off')};
+  $('manualBtn').onclick=function(){
+    var v=$('manual').value.trim();if(!v)return;
+    handle(v,'manual','manual');$('manual').value='';
+  };
+  $('manual').addEventListener('keydown',function(e){if(e.key==='Enter'){$('manualBtn').click()}});
+  $('clearBtn').onclick=function(){logRows=[];uniq={};times=[];total=0;dupes=0;lastVal='';lastAt=0;
+    ['sTotal','sUnique','sDupe'].forEach(function(i){$(i).textContent='0'});$('sMs').textContent='-';
+    $('last').textContent='-';$('lastMeta').textContent='Nothing scanned yet';renderLog()};
+  $('copyBtn').onclick=function(){
+    var txt=logRows.slice().reverse().map(function(r){return r.t+'\t'+r.f+'\t'+r.v}).join('\n');
+    if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){setMsg('Log copied.')},function(){setMsg('Copy blocked by the browser.')})}
+    else{setMsg('Copy is not available here.')}
+  };
+  document.addEventListener('visibilitychange',function(){if(document.hidden&&running)stop()});
+})();
+</script>
+</body>
+</html>
